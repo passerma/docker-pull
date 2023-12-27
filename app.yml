@@ -1,0 +1,12 @@
+# 项目端口
+port: 4010
+# 镜像输出目录
+distDir: ./dist/
+# 静态文件目录
+staticDir: ./static/
+# log目录
+logDir: ./log/
+# 清理dist时间 单位小时
+clearDistTime: 6
+# 镜像地址 比如阿里云 https://xxxxxx.mirror.aliyuncs.com
+registry: xxxxxx.mirror.aliyuncs.com

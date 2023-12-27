@@ -1,0 +1,132 @@
+html,
+body,
+#app,
+.page {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    flex-direction: column;
+
+    .input {
+        width: 75%;
+        max-width: 900px;
+        box-sizing: border-box;
+        padding: 0 10px;
+        position: relative;
+
+        .input-dom {
+            box-sizing: border-box;
+            height: 32px;
+            padding: 0;
+            padding-right: 30px;
+            outline: none;
+            border: none;
+            width: 100%;
+            border-bottom: 2px solid #5c32f2;
+            font-size: 20px;
+            line-height: 30px;
+            color: #5c32f2;
+        }
+
+        .input-btn {
+            position: absolute;
+            background-image: url("./send.png");
+            background-size: contain;
+            content: " ";
+            display: block;
+            height: 24px;
+            width: 24px;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+    }
+
+    .use {
+        margin-top: 3%;
+    }
+
+    .info {
+        margin-top: 3%;
+        height: 50%;
+        width: 75%;
+        max-width: 900px;
+        background: #1d1d1d;
+        overflow: auto;
+        border-radius: 2px;
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+        transition: .2s height ease-in-out;
+    }
+
+    .msg {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        box-sizing: border-box;
+        overflow: auto;
+
+        .msg-item {
+            font-size: 16px;
+            margin: 5px 8px;
+            word-wrap: break-word;
+            word-break: break-all;
+            line-height: 24px;
+            color: #dfdfdf;
+
+            .msg-time {
+                display: inline-block;
+                box-sizing: border-box;
+                background-color: #c678db;
+                position: relative;
+                padding-left: 6px;
+                padding-right: 8px;
+                margin-right: 20px;
+                font-size: 16px;
+                height: 24px;
+
+                &::before {
+                    position: absolute;
+                    content: " ";
+                    display: block;
+                    width: 0;
+                    height: 0;
+                    border-left: 12px solid #c678db;
+                    border-right: 12px solid transparent;
+                    border-bottom: 12px solid transparent;
+                    border-top: 12px solid transparent;
+                    right: -24px;
+                    top: 0;
+                }
+            }
+        }
+    }
+
+    .msg::-webkit-scrollbar {
+        width: 0;
+    }
+
+    .link {
+        width: 75%;
+        max-width: 900px;
+        text-align: left;
+        margin-top: 16px;
+        color: #000;
+
+        .link-a {
+            margin-left: 8px;
+        }
+    }
+}
