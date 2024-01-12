@@ -15,6 +15,7 @@ import (
 )
 
 func DockerPull(guid, img, tag string) {
+	registry := util.AllConf["registry"]
 	dir := path.Join(util.DistPath, guid)
 	tarName := path.Join(util.DistPath, guid+".tar")
 
@@ -32,9 +33,20 @@ func DockerPull(guid, img, tag string) {
 	fmt.Println("docker pull ", imgValue+":"+tag)
 	sendInfoMsg(guid, "docker pull "+imgValue+":"+tag)
 
-	if data, err := util.GetFsLayers(imgValue, tag); err == nil {
+	var data util.ManifestsData
+	var err error
+
+	data, err = util.GetFsLayers(registry, imgValue, tag)
+
+	// 阿里云镜像没获取到，再从官网获取
+	if err != nil {
+		registry = "registry-1.docker.io"
+		data, err = util.GetFsLayers(registry, imgValue, tag)
+	}
+
+	if err == nil {
 		sendInfoMsg(guid, "GetFsLayers: "+imgValue)
-		if config, err := util.GetDockerConfig(imgValue, data.Config.Digest, dir); err == nil {
+		if config, err := util.GetDockerConfig(registry, imgValue, data.Config.Digest, dir); err == nil {
 			sendInfoMsg(guid, "Creating image structure in: "+imgValue)
 			content := []map[string]interface{}{
 				{
@@ -65,7 +77,7 @@ func DockerPull(guid, img, tag string) {
 
 				sendInfoMsg(guid, ublob[7:19]+": Downloading...")
 
-				if err := util.DownloadFile(imgValue, ublob, layerdir+"/layer_gzip.tar", layer); err != nil {
+				if err := util.DownloadFile(registry, imgValue, ublob, layerdir+"/layer_gzip.tar", layer); err != nil {
 					os.RemoveAll(dir)
 					sendErrMsg(guid, err.Error())
 					break

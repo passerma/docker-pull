@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/xiao-ren-wu/restgo"
 )
 
 type Layer struct {
@@ -30,20 +32,40 @@ type ManifestsData struct {
 	Config Config `json:"config"`
 }
 
-func GetFsLayers(repository string, tag string) (data ManifestsData, err error) {
+func getToken(repository string) (token string, err error) {
+	var resp restgo.Response
+	var data map[string]string
+	url := fmt.Sprintf("https://auth.docker.io/token?service=registry.docker.io&scope=repository:%s:pull", repository)
+	resp, err = restgo.NewRestGoBuilder().Send(restgo.GET, url)
+	if err == nil {
+		resp.BodyUnmarshal(&data)
+		token = data["token"]
+	} else {
+		fmt.Println("get token err: ", err.Error())
+	}
+	return
+}
+
+func GetFsLayers(registry, repository, tag string) (data ManifestsData, err error) {
 	var res *http.Response
 	var req *http.Request
 	var body []byte
+	var token = ""
 	if tag == "" {
 		tag = "latest"
 	}
 	client := &http.Client{}
-	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s", AllConf["registry"], repository, tag)
+	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s", registry, repository, tag)
 	req, err = http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("get fsLayers err: ", err.Error())
 		return
 	}
+	token, err = getToken(repository)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	res, err = client.Do(req)
 	if err != nil {
@@ -66,20 +88,30 @@ func GetFsLayers(repository string, tag string) (data ManifestsData, err error) 
 		fmt.Println("get fsLayers err: ", err.Error())
 		return
 	}
+	if data.Config.Digest == "" {
+		err = errors.New("get fsLayers err: " + "Digest 不存在")
+		return
+	}
 	return data, nil
 }
 
-func GetDockerConfig(repository string, digest string, dir string) (data map[string]interface{}, err error) {
+func GetDockerConfig(registry, repository, digest, dir string) (data map[string]interface{}, err error) {
 	var res *http.Response
 	var req *http.Request
 	var body []byte
 	client := &http.Client{}
-	url := fmt.Sprintf("https://%s/v2/%s/blobs/%s", AllConf["registry"], repository, digest)
+	url := fmt.Sprintf("https://%s/v2/%s/blobs/%s", registry, repository, digest)
 	req, err = http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("GetDockerConfig err: ", err.Error())
 		return
 	}
+	token := ""
+	token, err = getToken(repository)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	res, err = client.Do(req)
 	if err != nil {
@@ -89,7 +121,6 @@ func GetDockerConfig(repository string, digest string, dir string) (data map[str
 	defer res.Body.Close()
 	body, err = io.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println("GetDockerConfig err: ", err.Error())
 		return
 	}
 	if res.StatusCode != http.StatusOK {
@@ -122,7 +153,7 @@ func GetDockerConfig(repository string, digest string, dir string) (data map[str
 	return data, nil
 }
 
-func DownloadFile(imgValue, ublob, fileName string, layer Layer) error {
+func DownloadFile(registry, imgValue, ublob, fileName string, layer Layer) error {
 	var req *http.Request
 	var resp *http.Response
 	client := &http.Client{}
@@ -132,8 +163,14 @@ func DownloadFile(imgValue, ublob, fileName string, layer Layer) error {
 		return err
 	}
 	defer out.Close()
-	url := fmt.Sprintf("https://%s/v2/%s/blobs/%s", AllConf["registry"], imgValue, ublob)
+	url := fmt.Sprintf("https://%s/v2/%s/blobs/%s", registry, imgValue, ublob)
 	req, _ = http.NewRequest("GET", url, nil)
+	token := ""
+	token, err = getToken(imgValue)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
 	resp, err = client.Do(req)
 	if err != nil {

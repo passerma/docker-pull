@@ -8,5 +8,5 @@ staticDir: ./static/
 logDir: ./log/
 # 清理dist时间 单位小时
 clearDistTime: 6
-# 镜像地址 比如阿里云 https://xxxxxx.mirror.aliyuncs.com
+# 阿里云镜像地址 https://xxxxxx.mirror.aliyuncs.com
 registry: xxxxxx.mirror.aliyuncs.com
