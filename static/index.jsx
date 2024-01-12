@@ -80,7 +80,7 @@ const App = () => {
             return
         }
         let [img, tag = "latest"] = valueArr[2].split(':')
-        imgName = img.includes("/") ? img.split("/")[0] : img
+        imgName = img.includes("/") ? img.split("/")[1] : img
         tag = encodeURIComponent(tag)
         img = encodeURIComponent(img)
         if (loading.current) return
